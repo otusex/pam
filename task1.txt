@@ -1,2 +1,64 @@
 
+# Установка epel и pam_script
+yum install epel-release -y
+yum -y install pam_script-1.1.8-1.el7.x86_64
+
+# Добавил pam_script.so в /etc/pam.d/sshd. !!!Делал только для входа по ssh!!!
+account    required     pam_script.so
+
+cat << EOF > /etc/pam.d/sshd
+#%PAM-1.0
+auth	   required	pam_sepermit.so
+auth       substack     password-auth
+auth       include      postlogin
+# Used with polkit to reauthorize users in remote sessions
+-auth      optional     pam_reauthorize.so prepare
+account    required     pam_script.so
+account    required     pam_nologin.so
+account    include      password-auth
+password   include      password-auth
+# pam_selinux.so close should be the first session rule
+session    required     pam_selinux.so close
+session    required     pam_loginuid.so
+# pam_selinux.so open should only be followed by sessions to be executed in the user context
+session    required     pam_selinux.so open env_params
+session    required     pam_namespace.so
+session    optional     pam_keyinit.so force revoke
+session    include      password-auth
+session    include      postlogin
+# Used with polkit to reauthorize users in remote sessions
+-session   optional     pam_reauthorize.so prepare
+EOF
+
+
+# Создал скрипт 
+cat << EOF > /etc/pam-script.d/group_acct
+#!/bin/bash
+
+# Заменил групу admin на vagrant
+# Проверяю наличие пользователя в групе vagrant
+if [[ ` getent group $PAM_USER  | grep 'vagrant'` ]]
+then
+exit 0
+fi
+
+# Если пользователь не состоит в групе vagrant, то проверяем день недели
+if [[ `date +%u` > 5 ]]
+then
+exit 1
+fi
+EOF
+
+
+# Для теста я изменял день недели
+date -s "Sat Nov 28 00:50:03 UTC 2020"
+
+# Смотрим результат
+ssh uotus@127.1 -p 2222
+Connection closed by 127.0.0.1 port 2222
+
+ssh vagrant@127.0.0.1 -p 2222
+Last login: Sat Nov 28 00:51:19 2020 from 10.0.2.2
+[vagrant@otusc7 ~]$
+
 
