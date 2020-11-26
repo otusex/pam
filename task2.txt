@@ -2,7 +2,7 @@
 useradd uotus
 passwd uotus
 
-# Добавил возможность для групы vagrant в управлять docker
+# Добавил возможность для групы vagrant управлять docker
 
 cat << EOF > /etc/sudoers.d/uotus
 %uotus ALL=(ALL) NOPASSWD:/bin/docker *
