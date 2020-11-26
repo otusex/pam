@@ -1,2 +1,28 @@
+# Создал пользователя uotus
+useradd uotus
+passwd uotus
+
+# Добавил возможность для групы vagrant в управлять docker
+
+cat << EOF > /etc/sudoers.d/uotus
+%uotus ALL=(ALL) NOPASSWD:/bin/docker *
+%uotus ALL=(ALL) NOPASSWD:/bin/systemctl start   docker
+%uotus ALL=(ALL) NOPASSWD:/bin/systemctl restart docker
+%uotus ALL=(ALL) NOPASSWD:/bin/systemctl status  docker
+EOF
+
+
+# перехожу под пользователя uotus
+
+sud - uotus
+
+[uotus@otusc7 ~]$ sudo systemctl status docker
+● docker.service - Docker Application Container Engine
+   Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)
+   Active: active (running) since Thu 2020-11-26 17:21:19 UTC; 4min 12s ago
+     Docs: http://docs.docker.com
+ Main PID: 2487 (dockerd-current)
+   CGroup: /system.slice/docker.service
+
 
 
